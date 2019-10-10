@@ -1,51 +1,63 @@
 
+// we have some code in other files so it's not distracting, but we need to
+// include it here
+use crate::sundries::*;
 
-pub use crate::{asm, asm_stmt};
-pub use Instruction::*;
-pub use Register::*;
+// there are 16 registers which the instructions can work on directly.
+// they are largely interchangeable, except that `r0` is magic, and always
+// equals 0 when read
+#[derive(Debug, Clone, Copy)]
+pub enum Register {
+    r0 = 0,
+    r1, r2, r3, r4, r5, r6, r7, r8,
+    r9, r10, r11, r12, r13, r14, r15,
+}
 
+/// Instructions take one or more registers, and acts on them
 #[derive(Debug, Clone, Copy)]
 pub enum Instruction {
     /* Add the values in the two source registers and store them in destination.
      * In pseudo-C `destination = source1 + source2`
      */
-    Add{destination: Register, source1: Register, source2: Register  },
+    Add{ destination: Register,  source1: Register,  source2: Register  },
 
-    /* Subtract the value in the second source register from the one in the first.
+    /* Subtract the value in the second source register from the one in the
+     * first.
      * In pseudo-C `destination = source1 - source2`
      */
-    Sub{destination: Register, source1: Register, source2: Register},
+    Sub{ destination: Register,  source1: Register,  source2: Register },
 
-    /* Multiply the values in the two source registers and store them in destination.
+    /* Multiply the values in the two source registers and store them in
+     * destination.
      * In pseudo-C `destination = source1 + source2`
      */
-    Mul{destination: Register, source1: Register, source2: Register},
+    Mul{ destination: Register,  source1: Register,  source2: Register },
 
     /* Divide the value in the first source register by the one in the second.
      * In pseudo-C `destination = source1 / source2`
      */
-    Div{destination: Register, source1: Register, source2: Register},
+    Div{ destination: Register,  source1: Register,  source2: Register },
 
     /* load 8 bytes of memory pointed at by `source` to `destination`.
      * In pseudo-C `destination = *(uint64)source`
      */
-    Load{destination: Register, source: Register},
+    Load{ destination: Register,  source: Register },
 
     /* load a 64bit constant value into `destination`.
      * In pseudo-C `destination = value`
      */
-    LoadImmediate{destination: Register, value: i64 },
+    LoadImmediate{ destination: Register,  value: int64 },
 
     /* load 8 bytes contained in `source` to the memory pointed at by `destination`.
      * In pseudo-C `*(uint64 *)destination = source`
      */
-    Store{destination: Register, source: Register},
+    Store{ destination: Register,  source: Register },
 
     /* if value < 0, jump to current instruction + offset. In pseudo-C
      * `next_instruction = value < 0?
      *     current_instruction + offset: current_instruction + 1`
      */
-    JumpIfLessThanZero{ offset: i16, value: Register},
+    JumpIfLessThanZero{ offset: i16,  value: Register },
 
     /* Pseudo-Instructions. In a real computer these would be implemented in
      * terms of more generic primitive operations, but it's convenient to have
@@ -64,28 +76,9 @@ pub enum Instruction {
     Halt
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum Register {
-    r0 = 0,
-    r1,
-    r2,
-    r3,
-    r4,
-    r5,
-    r6,
-    r7,
-    r8,
-    r9,
-    r10,
-    r11,
-    r12,
-    r13,
-    r14,
-    r15
-}
+// sample programs
 
-
-pub static sample1: &[Instruction] = asm!{
+pub static sample1: &[Instruction] = assembly! {
     r1 <- 100;
     r2 <- 10;
     *r2 <- r1
@@ -97,7 +90,8 @@ pub static sample1: &[Instruction] = asm!{
     r1 <- r1 / r3
 };
 
-pub static fibonocci: &[Instruction]  = asm! {
+/// a fibonocci generator written in our assembly
+pub static fibonocci: &[Instruction]  = assembly! {
     r1 <- 0; // prev
     r2 <- 1; // curr
     r3 <- 0; // i
